@@ -1,0 +1,8 @@
+# Allowlist de alvos autorizados a serem varridos.
+# Suporta wildcards (fnmatch). Só adicione hosts para os quais você tem
+# autorização formal de teste (laboratório próprio, pentest contratado, etc).
+
+allowed_hosts:
+  - "app-teste.local"
+  - "*.lab.internal"
+  # - "meudominio-de-teste.com"

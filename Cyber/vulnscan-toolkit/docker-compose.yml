@@ -1,0 +1,21 @@
+version: "3.9"
+
+services:
+  vulnscan:
+    build: .
+    image: vulnscan-toolkit:latest
+    container_name: vulnscan-toolkit
+    volumes:
+      - ./reports:/app/reports
+      - ./config:/app/config
+    # Exemplo de execução (sobrescreve o CMD do Dockerfile):
+    # docker compose run --rm vulnscan \
+    #   --target https://app-teste.local \
+    #   --profile full \
+    #   --i-have-authorization
+    networks:
+      - vulnscan-net
+
+networks:
+  vulnscan-net:
+    driver: bridge

@@ -1,0 +1,12 @@
+# Parâmetros ajustáveis da ferramenta. Sobrescreve os defaults em src/config/settings.py
+
+sqli_level: 2
+sqli_risk: 1
+sqli_timeout: 1800
+xss_timeout: 1200
+xxe_timeout: 900
+recon_timeout: 600
+zap_spider_minutes: 2
+
+report_company_name: "CIESC"
+report_author: "Higor Silva"
