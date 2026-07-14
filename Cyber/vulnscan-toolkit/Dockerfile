@@ -13,7 +13,8 @@ ENV DEBIAN_FRONTEND=noninteractive \
 # por isso é instalado via git clone logo abaixo, junto com perl (sua única dependência real).
 RUN apt-get update && apt-get install -y --no-install-recommends \
         python3 python3-pip python3-venv \
-        perl sqlmap \
+        perl libjson-perl libxml-writer-perl \
+        sqlmap \
         golang-go git curl wget ca-certificates \
         libpango-1.0-0 libpangocairo-1.0-0 libgdk-pixbuf2.0-0 libffi-dev \
         shared-mime-info fonts-liberation \

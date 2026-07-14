@@ -88,6 +88,11 @@ class XssModule(BaseScanModule):
         cmd = [
             "docker", "run", "--rm",
             "--network", network,
+            # A imagem oficial do ZAP roda como usuário não-root por padrão, mas o
+            # diretório montado pertence ao root (criado pelo nosso próprio container).
+            # Rodar como root aqui evita "Permission denied" ao escrever zap.yaml /
+            # zap-report.json no volume compartilhado.
+            "-u", "root",
             "-v", f"{host_work_dir}:/zap/wrk:rw",
             ZAP_IMAGE,
             "zap-baseline.py",
