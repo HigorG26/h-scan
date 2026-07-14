@@ -29,10 +29,17 @@ RUN go install -v github.com/projectdiscovery/nuclei/v3/cmd/nuclei@latest \
     && nuclei -update-templates || true
 
 # --- OWASP ZAP baseline script (zap-baseline.py) ---
-# Baixa o pacote "stable" do ZAP e expõe o wrapper de baseline scan
+# Resolve dinamicamente a URL do asset "*_Linux.tar.gz" do release mais recente via
+# GitHub API (evita fixar um número de versão, que quebra a cada novo release do ZAP).
+# Se a API falhar (ex: rate limit sem autenticação), cai para uma versão conhecida como fallback.
 RUN mkdir -p /opt/zap && \
-    curl -fsSL -o /tmp/zap.tar.gz \
-        https://github.com/zaproxy/zaproxy/releases/latest/download/ZAP_2.16.1_Linux.tar.gz && \
+    ZAP_FALLBACK_URL="https://github.com/zaproxy/zaproxy/releases/download/v2.17.0/ZAP_2.17.0_Linux.tar.gz" && \
+    ZAP_URL=$(curl -fsSL -A "Mozilla/5.0" https://api.github.com/repos/zaproxy/zaproxy/releases/latest \
+        | grep -o '"browser_download_url":[[:space:]]*"[^"]*_Linux\.tar\.gz"' \
+        | head -n1 | sed -E 's/.*"(https[^"]+)"/\1/'); \
+    if [ -z "$ZAP_URL" ]; then ZAP_URL="$ZAP_FALLBACK_URL"; fi && \
+    echo "Baixando ZAP de: ${ZAP_URL}" && \
+    curl -fsSL -o /tmp/zap.tar.gz "${ZAP_URL}" && \
     tar -xzf /tmp/zap.tar.gz -C /opt/zap --strip-components=1 && \
     rm /tmp/zap.tar.gz && \
     ln -s /opt/zap/zap-baseline.py /usr/local/bin/zap-baseline.py && \
