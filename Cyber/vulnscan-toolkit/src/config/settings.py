@@ -21,9 +21,12 @@ DEFAULTS = {
     "zap_spider_minutes": 2,
     "report_company_name": "CIESC",
     "report_author": "Higor Silva",
+    "docker_network": "vulnscan-net",
 }
 
-SETTINGS_FILE = Path("./config/settings.yaml")
+# Caminho absoluto: o WORKDIR em tempo de execução é /app/src, então um caminho
+# relativo aqui ("./config/...") NÃO bateria com o volume montado em /app/config.
+SETTINGS_FILE = Path("/app/config/settings.yaml")
 
 
 def load_settings() -> dict:

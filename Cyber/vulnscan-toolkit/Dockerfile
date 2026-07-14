@@ -28,22 +28,27 @@ RUN git clone --depth 1 https://github.com/sullo/nikto.git /opt/nikto && \
 RUN go install -v github.com/projectdiscovery/nuclei/v3/cmd/nuclei@latest \
     && nuclei -update-templates || true
 
-# --- OWASP ZAP baseline script (zap-baseline.py) ---
-# Resolve dinamicamente a URL do asset "*_Linux.tar.gz" do release mais recente via
-# GitHub API (evita fixar um número de versão, que quebra a cada novo release do ZAP).
-# Se a API falhar (ex: rate limit sem autenticação), cai para uma versão conhecida como fallback.
-RUN mkdir -p /opt/zap && \
-    ZAP_FALLBACK_URL="https://github.com/zaproxy/zaproxy/releases/download/v2.17.0/ZAP_2.17.0_Linux.tar.gz" && \
-    ZAP_URL=$(curl -fsSL -A "Mozilla/5.0" https://api.github.com/repos/zaproxy/zaproxy/releases/latest \
-        | grep -o '"browser_download_url":[[:space:]]*"[^"]*_Linux\.tar\.gz"' \
-        | head -n1 | sed -E 's/.*"(https[^"]+)"/\1/'); \
-    if [ -z "$ZAP_URL" ]; then ZAP_URL="$ZAP_FALLBACK_URL"; fi && \
-    echo "Baixando ZAP de: ${ZAP_URL}" && \
-    curl -fsSL -o /tmp/zap.tar.gz "${ZAP_URL}" && \
-    tar -xzf /tmp/zap.tar.gz -C /opt/zap --strip-components=1 && \
-    rm /tmp/zap.tar.gz && \
-    ln -s /opt/zap/zap-baseline.py /usr/local/bin/zap-baseline.py && \
-    chmod +x /usr/local/bin/zap-baseline.py
+# --- Cliente Docker (CLI apenas, sem daemon) para Docker-outside-of-Docker ---
+# Desde a v2.15, o zap-baseline.py deixou de ser distribuído no pacote desktop
+# do ZAP (.tar.gz) - ele só existe dentro da imagem oficial do ZAP
+# (ghcr.io/zaproxy/zaproxy:stable). Tentar reempacotar isso à mão é frágil e
+# quebra a cada release. A forma correta e oficialmente documentada é rodar o
+# baseline scan disparando a imagem oficial como um container-irmão, via socket
+# do Docker montado (ver módulo xss.py e as instruções de execução no README).
+RUN DEB_ARCH="$(dpkg --print-architecture)" && \
+    case "$DEB_ARCH" in \
+        amd64) DOCKER_ARCH="x86_64" ;; \
+        arm64) DOCKER_ARCH="aarch64" ;; \
+        armhf) DOCKER_ARCH="armhf" ;; \
+        *) DOCKER_ARCH="x86_64" ;; \
+    esac && \
+    DOCKER_VER="29.6.1" && \
+    curl -fsSL -o /tmp/docker.tgz \
+        "https://download.docker.com/linux/static/stable/${DOCKER_ARCH}/docker-${DOCKER_VER}.tgz" && \
+    tar -xzf /tmp/docker.tgz -C /tmp && \
+    mv /tmp/docker/docker /usr/local/bin/docker && \
+    chmod +x /usr/local/bin/docker && \
+    rm -rf /tmp/docker.tgz /tmp/docker
 
 WORKDIR /app
 

@@ -58,7 +58,11 @@ def parse_args() -> argparse.Namespace:
         default=None,
         help="Lista explícita de módulos a rodar (sobrepõe o profile). Ex: --modules sqli xss xxe",
     )
-    parser.add_argument("--out", default="./reports", help="Diretório de saída dos relatórios")
+    parser.add_argument(
+        "--out",
+        default="/app/reports",
+        help="Diretório de saída dos relatórios (padrão: /app/reports, que é o volume montado pelo docker-compose)",
+    )
     parser.add_argument(
         "--format",
         choices=["html", "pdf", "both"],
@@ -67,8 +71,8 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument(
         "--scope-file",
-        default="./config/scope.yaml",
-        help="Arquivo com a allowlist de alvos autorizados",
+        default="/app/config/scope.yaml",
+        help="Arquivo com a allowlist de alvos autorizados (padrão: /app/config/scope.yaml, volume montado)",
     )
     parser.add_argument(
         "--i-have-authorization",

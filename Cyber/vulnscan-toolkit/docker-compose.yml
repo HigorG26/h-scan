@@ -6,9 +6,16 @@ services:
     volumes:
       - ./reports:/app/reports
       - ./config:/app/config
+      # Socket do Docker do host: necessário para o módulo xss (Docker-outside-
+      # of-Docker), que dispara a imagem oficial do ZAP como container-irmão.
+      - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      # Caminho, no HOST, equivalente a ./reports - usado pelo módulo xss para
+      # montar o volume certo no container-irmão do ZAP (ver src/modules/xss.py).
+      - HOST_REPORTS_DIR=${PWD}/reports
     # Exemplo de execução (sobrescreve o CMD do Dockerfile):
     # docker compose run --rm vulnscan \
-    #   --target https://app-teste.local \
+    #   --target http://juice-shop:3000 \
     #   --profile full \
     #   --i-have-authorization
     networks:
@@ -16,4 +23,7 @@ services:
 
 networks:
   vulnscan-net:
-    driver: bridge
+    # A rede é criada manualmente (docker network create vulnscan-net) para que
+    # o alvo (ex: container do Juice Shop) e o container-irmão do ZAP consigam
+    # se enxergar por nome nessa mesma rede.
+    external: true
