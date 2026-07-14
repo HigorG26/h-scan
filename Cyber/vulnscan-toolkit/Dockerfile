@@ -9,13 +9,20 @@ ENV DEBIAN_FRONTEND=noninteractive \
     PATH="/root/go/bin:${PATH}"
 
 # --- Dependências de sistema + libs do WeasyPrint (renderização PDF) ---
+# Nota: o pacote "nikto" foi removido dos repositórios do Debian (bookworm em diante),
+# por isso é instalado via git clone logo abaixo, junto com perl (sua única dependência real).
 RUN apt-get update && apt-get install -y --no-install-recommends \
         python3 python3-pip python3-venv \
-        nikto sqlmap \
+        perl sqlmap \
         golang-go git curl wget ca-certificates \
         libpango-1.0-0 libpangocairo-1.0-0 libgdk-pixbuf2.0-0 libffi-dev \
         shared-mime-info fonts-liberation \
     && rm -rf /var/lib/apt/lists/*
+
+# --- Nikto via git clone (não está mais nos repositórios apt do Debian) ---
+RUN git clone --depth 1 https://github.com/sullo/nikto.git /opt/nikto && \
+    ln -s /opt/nikto/program/nikto.pl /usr/local/bin/nikto && \
+    chmod +x /opt/nikto/program/nikto.pl
 
 # --- Nuclei (ProjectDiscovery) via go install ---
 RUN go install -v github.com/projectdiscovery/nuclei/v3/cmd/nuclei@latest \

@@ -5,4 +5,6 @@
 allowed_hosts:
   - "app-teste.local"
   - "*.lab.internal"
+  - "juice-shop"          # container OWASP Juice Shop (lab de teste)
+  - "localhost"
   # - "meudominio-de-teste.com"
